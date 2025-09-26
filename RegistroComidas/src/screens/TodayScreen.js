@@ -1,50 +1,129 @@
-// Esta pantalla es la que muestra las comidas registradas el día de HOY.
-// Aquí puedo ver el total de calorías y macros (proteínas, carbohidratos y grasas)
-// y también tengo la lista de comidas del día con opción de eliminar.
+// src/screens/TodayScreen.js
+// Animaciones visibles:
+// 1) Header (totales) entra con fade + slide-in.
+// 2) Cada elemento de la lista aparece con fade + slide-in.
+// Además conservo: Intents (implícitos/explicito), Extras (plantilla), Validaciones (en AddMeal), y LayoutAnimation.
 
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, RefreshControl, StyleSheet, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import {
+  View, Text, FlatList, RefreshControl, StyleSheet, Alert,
+  LayoutAnimation, UIManager, Platform, Pressable, Linking, Share, Animated, Easing
+} from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as Application from 'expo-application';
+
 import { getMeals, deleteMeal } from '../storage/mealStorage';
 import MealItem from '../components/MealItem';
-// isSameDay lo estaba usando para comparar fechas, pero más adelante lo podemos
-// reemplazar por la clave local 'dateKey' para evitar errores de zona horaria.
-import { isSameDay } from 'date-fns';
 import { palette, radius, shadow } from '../theme/colors';
 
+// habilito animaciones de layout en Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+// helper local: 'YYYY-MM-DD' hoy
+function ymdLocal(date = new Date()) {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, '0');
+  const d = `${date.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// Componente para animar la aparición de cada item
+function AnimatedMealItem({ item, onDelete, onLongPress, index }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(8)).current;
+
+  useEffect(() => {
+    // escalono un poco la entrada para que se vea “en cascada”
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 250,
+      delay: 40 * Math.min(index, 10), // máx 10 ítems con retraso
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+    Animated.timing(translateY, {
+      toValue: 0,
+      duration: 250,
+      delay: 40 * Math.min(index, 10),
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+  }, [opacity, translateY, index]);
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+      <MealItem meal={item} onLongPress={onLongPress} onDelete={onDelete} />
+    </Animated.View>
+  );
+}
+
 export default function TodayScreen() {
-  // aquí guardo el estado de las comidas de hoy
+  const navigation = useNavigation();
+
+  // comidas de hoy + estado de refresh
   const [meals, setMeals] = useState([]);
-  // este estado lo uso para mostrar el loader de "pull-to-refresh"
   const [refreshing, setRefreshing] = useState(false);
 
-  // función para cargar comidas de hoy desde AsyncStorage
+  // Animación del header (totales)
+  const headerOpacity = useRef(new Animated.Value(0)).current;
+  const headerTranslate = useRef(new Animated.Value(-10)).current;
+
+  const playHeaderIn = useCallback(() => {
+    headerOpacity.setValue(0);
+    headerTranslate.setValue(-10);
+    Animated.parallel([
+      Animated.timing(headerOpacity, {
+        toValue: 1,
+        duration: 280,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+      Animated.timing(headerTranslate, {
+        toValue: 0,
+        duration: 280,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+    ]).start();
+  }, [headerOpacity, headerTranslate]);
+
+  // cargo comidas de HOY usando dateKey local y ordeno por createdAt desc
   const load = useCallback(async () => {
     const all = await getMeals();
-    const today = new Date();
-    // filtro solo las comidas del día de hoy y las ordeno por hora descendente
-    const todays = all
-      .filter((m) => isSameDay(new Date(m.dateISO), today))
-      .sort((a, b) => +new Date(b.dateISO) - +new Date(a.dateISO));
-    setMeals(todays);
-  }, []);
+    const todayKey = ymdLocal(new Date());
 
-  // cada vez que entro a la pantalla, recargo la información
+    const todays = all
+      .filter((m) => m.dateKey === todayKey)
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); // cambios de layout
+    setMeals(todays);
+    playHeaderIn(); // header vuelve a entrar animado
+  }, [playHeaderIn]);
+
+  // recargo al entrar a la pantalla
   useFocusEffect(React.useCallback(() => { load(); }, [load]));
 
-  // calculo los totales del día sumando los valores de cada comida
-  const totals = meals.reduce(
-    (acc, m) => {
-      acc.calories += m.calories || 0;
-      acc.protein  += m.protein  || 0;
-      acc.carbs    += m.carbs    || 0;
-      acc.fat      += m.fat      || 0;
-      return acc;
-    },
-    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  // totales del día
+  const totals = useMemo(
+    () =>
+      meals.reduce(
+        (acc, m) => {
+          acc.calories += m.calories || 0;
+          acc.protein += m.protein || 0;
+          acc.carbs += m.carbs || 0;
+          acc.fat += m.fat || 0;
+          return acc;
+        },
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      ),
+    [meals]
   );
 
-  // confirmación para eliminar una comida
+  // eliminar con confirmación + animación
   const confirmDelete = (id) => {
     Alert.alert('Eliminar', '¿Quieres eliminar esta comida?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -53,19 +132,61 @@ export default function TodayScreen() {
         style: 'destructive',
         onPress: async () => {
           await deleteMeal(id);
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
           await load();
         },
       },
     ]);
   };
 
+  // --------- INTENTS (implícitos y explícito) + EXTRAS (template) ---------
+  const abrirMapas = async () => {
+    const q = encodeURIComponent('gimnasio cerca de mi');
+    const url = Platform.select({
+      android: `geo:0,0?q=${q}`,
+      ios: `http://maps.apple.com/?q=${q}`,
+    });
+    await Linking.openURL(url);
+  };
+
+  const compartirResumen = async () => {
+    await Share.share({
+      message: `Hoy llevo ${totals.calories} kcal · P ${totals.protein}g · C ${totals.carbs}g · G ${totals.fat}g`,
+    });
+  };
+
+  const abrirAjustesApp = async () => {
+    const pkg = Application.applicationId || 'host.exp.exponent';
+    await IntentLauncher.startActivityAsync(
+      IntentLauncher.ActivityAction.APPLICATION_DETAILS_SETTINGS,
+      { data: `package:${pkg}` }
+    );
+  };
+
+  const usarPlantilla = () => {
+    navigation.navigate('Agregar', {
+      template: { name: 'Pechuga asada', calories: '300', protein: '45' },
+    });
+  };
+
+  const Btn = ({ title, onPress }) => (
+    <Pressable onPress={onPress} style={styles.utilBtn}>
+      <Text style={styles.utilBtnTxt}>{title}</Text>
+    </Pressable>
+  );
+  // -----------------------------------------------------------------------
+
   return (
     <View style={{ flex: 1 }}>
-      {/* tarjeta con el resumen de calorías y macros */}
-      <View style={styles.headerCard}>
+      {/* header animado */}
+      <Animated.View
+        style={[
+          styles.headerCard,
+          { opacity: headerOpacity, transform: [{ translateY: headerTranslate }] },
+        ]}
+      >
         <Text style={styles.kcal}>{totals.calories} kcal</Text>
         <View style={styles.chipsRow}>
-          {/* cada chip muestra el total de un macronutriente */}
           <View style={[styles.chip, { backgroundColor: '#ecfeff' }]}>
             <Text style={[styles.chipTxt, { color: palette.blue }]}>P {totals.protein}g</Text>
           </View>
@@ -76,13 +197,20 @@ export default function TodayScreen() {
             <Text style={[styles.chipTxt, { color: palette.green }]}>G {totals.fat}g</Text>
           </View>
         </View>
+      </Animated.View>
+
+      {/* fila de utilidades: Intents + Extras */}
+      <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginTop: 12 }}>
+        <Btn title="Abrir Mapas" onPress={abrirMapas} />
+        <Btn title="Compartir" onPress={compartirResumen} />
+        <Btn title="Ajustes App" onPress={abrirAjustesApp} />
+        <Btn title="Usar plantilla" onPress={usarPlantilla} />
       </View>
 
-      {/* lista de comidas del día */}
+      {/* lista con items animados */}
       <FlatList
         data={meals}
         keyExtractor={(m) => m.id}
-        // con esto puedo hacer "pull-to-refresh"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -95,10 +223,10 @@ export default function TodayScreen() {
         }
         contentContainerStyle={{ padding: 16 }}
         ListEmptyComponent={<Text style={styles.empty}>No hay comidas registradas hoy.</Text>}
-        renderItem={({ item }) => (
-          <MealItem
-            meal={item}
-            // puedo borrar con longPress o con el botón de eliminar
+        renderItem={({ item, index }) => (
+          <AnimatedMealItem
+            item={item}
+            index={index}
             onLongPress={() => confirmDelete(item.id)}
             onDelete={() => confirmDelete(item.id)}
           />
@@ -108,7 +236,6 @@ export default function TodayScreen() {
   );
 }
 
-// estilos de la tarjeta de resumen y de la lista
 const styles = StyleSheet.create({
   headerCard: {
     backgroundColor: palette.card,
@@ -126,4 +253,17 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.lg },
   chipTxt: { fontWeight: '700' },
   empty: { textAlign: 'center', marginTop: 24, color: palette.textDim },
+
+  // botones utilitarios (intents / extras)
+  utilBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: radius.lg,
+    backgroundColor: '#fff',
+    marginRight: 8,
+    ...shadow.card,
+  },
+  utilBtnTxt: { color: palette.text, fontWeight: '700' },
 });
