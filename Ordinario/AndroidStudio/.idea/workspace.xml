@@ -16,7 +16,45 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a84229d7-1229-4de2-b740-077718c97be7" name="Changes" comment="" />
+    <list default="true" id="a84229d7-1229-4de2-b740-077718c97be7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/proguard-rules.pro" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/androidTest/java/com/example/menunavdrawer/ExampleInstrumentedTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/java/com/example/menunavdrawer/MainActivity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/drawable/ic_launcher_foreground.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/layout/activity_main.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-hdpi/ic_launcher.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-mdpi/ic_launcher.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/values-night/themes.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/values/colors.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/values/themes.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/xml/backup_rules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/app/src/test/java/com/example/menunavdrawer/ExampleUnitTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradle.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradle/libs.versions.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradlew" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/gradlew.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MenuNavDrawer/settings.gradle.kts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
